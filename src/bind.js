@@ -82,6 +82,7 @@ const QL = (()=>{
         wrapper[i].query = (method, args, returnValues) => {
           return single[method](args, returnValues).then((result) => {
             let component = Client.components.find( component => { return selection[i] === component.element; });
+            console.log(Client);
             populate(component, result.data);
             return result.data;
           });
@@ -119,7 +120,7 @@ const QL = (()=>{
           });
         }
 
-        Client.components.push(component.element);
+        Client.components.push(component);
       }
     }
 

@@ -58,6 +58,12 @@ main{
   width: 100%;
   text-align: center;
 }
+#projects {
+  position: relative;
+  height: 100%;
+  width: 100%;
+  margin: 20px;
+}
 #search_field {
   margin-top: 40px;
   margin-bottom: 20px;
@@ -86,10 +92,11 @@ main{
 #search_input:focus {
   outline: none;
 }
-#search_button{
+.search_buttons{
   font-size: 14px;
   padding: 5px 10px;
   display: inline-block;
+  margin: 0px 5px;
   background-color: white;
   border-radius: 2px; 
   border: solid 1px white;
@@ -101,6 +108,7 @@ main{
   background-color: #F0F0F0;
 }
 .project_box {
+  vertical-align: top;
   display: inline-block;
   position: relative;
   height: 200px;
@@ -113,10 +121,19 @@ main{
 .project_box:hover {
   box-shadow: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22);
 }
+.project_box hr {
+  width: 80%;
+  margin: 0px auto;
+}
 .name{
+  margin-top: 20px;
+  margin-bottom: 10px;
   display: inline-block;
+  color: #646464;
 }
 .company{
+  margin-top: 20px;
+  margin-bottom: 10px;
   display: inline-block;
   color: #646464;
 }
@@ -124,9 +141,10 @@ main{
   text-align: left;
   margin: 15px;
   display: inline-block;
+  color: black;
 }
 footer{
-  position: fixed;
+  position: relative;
   bottom: 0px;
   height: 40px;
   width: 100%;

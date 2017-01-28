@@ -1,7 +1,8 @@
 const express = require('express');
 const graphqlHTTP = require('express-graphql');
 const bodyParser = require('body-parser');
-import Schema from './server/schema.js';
+// import Schema from './server/schema.js';
+import Schema from './server/schema1.js';
 // import {graphql} from 'graphql';
 
 const app = express();

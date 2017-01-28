@@ -31,12 +31,17 @@
           <option value="company">Company</option>
         </select>
         <input id="search_input" type="text"></input>
-        <button id="search_button">Find</button>
+        <button id="search_button" class="search_buttons">Find</button>
+        <button id="all_button" class="search_buttons">See all projects</button>
       </div>
-      <section ql-list='project | recentProjects(count : 1)' id="projects">
+      <section ql-list='project | getProjects()' id="projects">
         <div class="project_box">
-          <h3 class="name" ql-field="name"></h3> |
-          <h3 class="company" ql-field="company"></h3>
+          <h4 class="name" ql-field="name"></h3> |
+          <!-- <span class="company" ql-type="company">
+            <p ql-field="name"><p>
+          </span> -->
+          <h4 class="company">Company</h3>
+          <hr>
           <p class="description" ql-field="description"></p>
         </div>
       </section>
