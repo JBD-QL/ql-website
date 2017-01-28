@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>QLegance</title>
+    <script type="text/javascript" src="bind.js"></script>
+    <script type="text/javascript" src="index.js"></script>
+    <link href="https://fonts.googleapis.com/css?family=Quicksand" rel="stylesheet">
+    <link href='style.css' rel='stylesheet' type='text/css'/>
+  </head>
+  <body ql-server='/graphql'>
+    <header>
+      <nav>
+        <ul id="navi_bar">
+          <li><a class="navi_links" href="#">Learn</a></li>
+          <li><a class="navi_links" href="#">Code</a></li>
+          <li><a class="navi_links" href="#">Blog</a></li>
+        </ul>
+      </nav>
+      <section id="intro">
+        <h1>QLegance</h1>
+        <p>A lightweight Graphql client library for Javascript environments<p>
+      </section>
+    </header>
+    <main>
+      <h2> Projects built with Qlegance</h2>
+      <div id="search_field">
+        Find project by: 
+        <select id="search_option">
+          <option value="name">Name</option>
+          <option value="company">Company</option>
+        </select>
+        <input id="search_input" type="text"></input>
+        <button id="search_button">Find</button>
+      </div>
+      <section ql-list='project | recentProjects(count : 1)' id="projects">
+        <div class="project_box">
+          <h3 class="name" ql-field="name"></h3> |
+          <h3 class="company" ql-field="company"></h3>
+          <p class="description" ql-field="description"></p>
+        </div>
+      </section>
+    </main>
+    <footer>Copyright © 2017 JBD-QL Inc.</footer>
+  </body>
+</html>
