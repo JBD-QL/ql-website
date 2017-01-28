@@ -11,27 +11,54 @@ import {
 } from 'graphql';
 
 const mongoose = require('mongoose');
-
-const uri = process.env.MONGO_URI || 'mongodb://localhost/QLprojects';
-
+const uri = process.env.MONGO_URI || 'mongodb://localhost/QLprojects1';
 const db = mongoose.connect(uri);
 
-const projectModel = require('./model');
+const projectModel = require('./model1');
+const companyModel = require('./model2');
+
+const Company = new GraphQLObjectType({
+  name: 'company',
+  fields: () => ({
+    name: {type: new GraphQLNonNull(GraphQLString)},
+    size: {type: GraphQLInt},
+    stack: {type: new GraphQLList(GraphQLString)}
+  })
+});
 
 const Project = new GraphQLObjectType({
   name: 'project',
   fields: () => ({
     name: {type: new GraphQLNonNull(GraphQLString)},
-    company: {type: new GraphQLNonNull(GraphQLString)},
-    size: {type: GraphQLInt},
-    description: {type: new GraphQLNonNull(GraphQLString)},
-    stack: {type: new GraphQLList(GraphQLString)}
+    company: {
+      type: Company,
+      resolve: ({company}) => {
+        return companyModel.findOne({name : company});
+      }
+    },
+    description: {type: new GraphQLNonNull(GraphQLString)}
   })
 });
 
 const Query = new GraphQLObjectType({
   name: 'ProjectSchema',
   fields: () => ({
+    getCompanies: {
+      type: new GraphQLList(Company),
+      resolve: (source, args) => {
+        return companyModel.find({});
+      }
+    },
+    getCompanyByName: {
+      type: new GraphQLList(Company),
+      args: {
+        name: {type: new GraphQLNonNull(GraphQLString)},
+      },
+      resolve: (source, args) => {
+        const search = Object.assign({}, args);
+        return companyModel.findOne(search);
+      }
+    },
     getProjects: {
       type: new GraphQLList(Project),
       resolve: (source, args) => {
@@ -78,13 +105,23 @@ const Mutation = new GraphQLObjectType({
       args: {
         name: {type: new GraphQLNonNull(GraphQLString)},
         company: {type: new GraphQLNonNull(GraphQLString)},
-        size: {type: GraphQLInt},
         description: {type: new GraphQLNonNull(GraphQLString)},
-        stack: {type: new GraphQLList(GraphQLString)}
       },
       resolve: (source, args) => {
         const proj = Object.assign({}, args);
         return projectModel.create(proj);
+      }
+    },
+    addCompany: {
+      type: Company,
+      args: {
+        name: {type: new GraphQLNonNull(GraphQLString)},
+        size: {type: GraphQLInt},
+        stack: {type: new GraphQLList(GraphQLString)}
+      },
+      resolve: (source, args) => {
+        const proj = Object.assign({}, args);
+        return companyModel.create(proj);
       }
     }
   }
