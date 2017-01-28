@@ -1,0 +1,136 @@
+body {
+  height: 100%;
+  width: 100%;
+  margin: 0px;
+  padding: 0px;
+  font-family: Quicksand;
+  background-color: white;
+}
+ul {
+  margin: 0px;
+  padding: 0px;
+}
+header {
+  position: relative;
+  top: 0px;
+  width: 100%;
+  height: 30%;
+  /*min-height: 190px;*/
+  background-image: url('./graphql.png');
+  margin: 0px;
+}
+nav {
+  position: relative;
+  margin-left: 100px;
+  padding-top: 15px;
+  height: 20%;
+}
+#navi_bar li {
+  display: inline-block;
+}
+.navi_links{
+  color: #F4F4F5;
+  font-size: 16px;
+  text-decoration: none;
+  margin: 0px 20px;
+}
+#intro {
+  position: relative;
+  text-align: center;
+  width: 100%;
+  height: 80%;
+  margin: 20px 0px;
+}
+#intro h1 {
+  font-size: 60px;
+  color: #E401A1;
+  margin: 0px;
+}
+#intro p {
+  color: #F4F4F5;
+  font-size: 20px;
+  margin-top: 20px;
+}
+main{
+  display: block;
+  position: relative;
+  height: 65%;
+  width: 100%;
+  text-align: center;
+}
+#search_field {
+  margin-top: 40px;
+  margin-bottom: 20px;
+}
+#search_option{
+  font-size: 14px;
+  /*color: #646464;*/
+  display: inline-block;
+  background-color: transparent;
+  /*width: 100%;*/
+  padding: 0px;
+  border: none;
+  /*border-bottom: 1px solid #646464;*/
+}
+#search_input {
+  font-size: 14px;
+  padding: 2px;
+  width: 150px;
+  border:none;
+  border-bottom:1px solid #757575;
+  /*box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+  transition: all 0.3s cubic-bezier(.25,.8,.25,1);*/
+  display: inline-block;
+  margin: 0px 10px;
+}
+#search_input:focus {
+  outline: none;
+}
+#search_button{
+  font-size: 14px;
+  padding: 5px 10px;
+  display: inline-block;
+  background-color: white;
+  border-radius: 2px; 
+  border: solid 1px white;
+  box-shadow: 0 2px 2px 0 rgba(0,0,0,0.14), 0 1px 5px 0 rgba(0,0,0,0.12), 0 3px 1px -2px rgba(0,0,0,0.2);
+  /*transition: all 0.3s cubic-bezier(.25,.8,.25,1);*/
+}
+#search_button:hover {
+  border: solid 1px #F0F0F0;
+  background-color: #F0F0F0;
+}
+.project_box {
+  display: inline-block;
+  position: relative;
+  height: 200px;
+  width: 300px;
+  border-radius: 2px; 
+  box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+  transition: all 0.3s cubic-bezier(.25,.8,.25,1);
+  margin: 20px;
+}
+.project_box:hover {
+  box-shadow: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22);
+}
+.name{
+  display: inline-block;
+}
+.company{
+  display: inline-block;
+  color: #646464;
+}
+.description{
+  text-align: left;
+  margin: 15px;
+  display: inline-block;
+}
+footer{
+  position: fixed;
+  bottom: 0px;
+  height: 40px;
+  width: 100%;
+  text-align: center;
+  background-color: #E5E4E5;
+  line-height: 2.5;
+}
