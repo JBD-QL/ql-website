@@ -6,7 +6,7 @@
     <script type="text/javascript" src="bind.js"></script>
     <script type="text/javascript" src="index.js"></script>
     <link href="https://fonts.googleapis.com/css?family=Quicksand" rel="stylesheet">
-    <link href='style.css' rel='stylesheet' type='text/css'/>
+    <link href='style.css' rel='stylesheet' type='text/css'>
   </head>
   <body ql-server='/graphql'>
     <header>
@@ -19,7 +19,7 @@
       </nav>
       <section id="intro">
         <h1>QLegance</h1>
-        <p>A lightweight Graphql client library for Javascript environments<p>
+        <p>A lightweight Graphql client library for Javascript environments</p>
       </section>
     </header>
     <main>
@@ -36,12 +36,12 @@
       </div>
       <section ql-list='project | getProjects()' id="projects">
         <div class="project_box">
-          <h4 class="name" ql-field="name"></h3> |
-          <!-- <span class="company" ql-type="company">
-            <p ql-field="name"><p>
+          <h3 class="name" ql-field="name"></h3> |
+          <h3 class="company">Company</h3>
+          <!-- <span ql-type="company">
+            <h4 class="company" ql-field="name"><h4>
           </span> -->
-          <h4 class="company">Company</h3>
-          <hr>
+          <hr/>
           <p class="description" ql-field="description"></p>
         </div>
       </section>
