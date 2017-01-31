@@ -25,7 +25,7 @@
     <main>
       <h2> Projects built with Qlegance</h2>
       <div id="search_field">
-        Find project by: 
+        Find project by:
         <select id="search_option">
           <option value="name">Name</option>
           <option value="company">Company</option>
@@ -36,10 +36,10 @@
       </div>
       <section ql-list='project | getProjects()' id="projects">
         <div class="project_box">
-          <h4 class="name" ql-field="name"></h3> |
-          <!-- <span class="company" ql-type="company">
-            <p ql-field="name"><p>
-          </span> -->
+          <h4 class="name" ql-field="name"></h4> |
+          <span class="company" ql-type="company">
+            <p ql-field="name"></p>
+          </span>
           <h4 class="company">Company</h3>
           <hr>
           <p class="description" ql-field="description"></p>
