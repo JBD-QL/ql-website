@@ -25,12 +25,17 @@ const QL = (()=>{
       return sendQuery("mutation" + string);
     };
 
-    single.initializer = () => {
-      if(!Client.server){
-        let server = document.querySelector('[ql-server]');
-        if(!server) throw new Error('GraphQL server has not been set.');
-        single.setServer(server.getAttribute('ql-server'));
+    single.initializer = (string) => {
+      let server;
+      if (typeof string === 'undefined') {
+        string = document.querySelector('[ql-server]');
+        if(!string) throw new Error('GraphQL server has not been set.');
+        server = string.getAttribute('ql-server');
+      } else {
+        server = string;
+        single.setServer(server);
       }
+      single.setServer(server);
       introspect();
       buildComponents();
     };
@@ -199,7 +204,7 @@ const QL = (()=>{
         html = '';
 
       //FIXME Will need to iterate over keys when multiple queries are allowed
-      let queryKey = Object.keys(data)[0];
+      let queryKey = Object.keys(data)[0]
       data = data[queryKey];
 
       data = Array.isArray(data) ? data : [data]; //Ensuring a length is available
@@ -208,22 +213,21 @@ const QL = (()=>{
       for(let i = 0; i < len; i++){
         template = component.partial.cloneNode(true);
         keys = Object.keys(data[i]);
-
         keys.forEach((key) => {
           element = template.querySelector(`[ql-field=${key}]`);
           if(!element){
-             element = template.querySelector(`[ql-type=${key}]`) || template.querySelector(`[ql-list=${key}]`);
-             let comp = Client.components.find((component) => { return getAttr(component.element) === getAttr(element); });
-             let obj = {};
-             obj[`${queryKey}`] = data[i][getAttr(element)];
+            element = template.querySelector(`[ql-type=${key}]`) || template.querySelector(`[ql-list=${key}]`);
+            let comp = Client.components.find((component) => { return getAttr(component.element) === getAttr(element); });
+            let obj = {};
+            obj[`${queryKey}`] = data[i][getAttr(element)];
 
-             //populate an inner component then append it
-             element.parentNode.replaceChild( populate(comp, obj), element);
-           }else if(element.nodeName.toLowerCase() === 'input'){
-              element.setAttribute('value', data[i][key]);
-            }else{
-              element.innerHTML = data[i][key];
-            }
+            //populate an inner component then append it
+            element.parentNode.replaceChild( populate(comp, obj), element);
+          } else if (element.nodeName.toLowerCase() === 'input'){
+            element.setAttribute('value', data[i][key]);
+          } else {
+            element.innerHTML = data[i][key];
+          }
         });
 
         html += template.innerHTML;
@@ -233,158 +237,142 @@ const QL = (()=>{
       return template;
     }
 
-  function introspect() {
-    const introspectiveQuery = `
-      {
-        __schema {
-          mutationType {
+    function introspect() {
+      const introspectiveQuery = `
+        {
+          __schema {
+            mutationType {
+              ...typeInfo
+            }
+            queryType {
+              ...typeInfo
+            }
+          }
+        }
+
+        fragment typeInfo on __Type {
+          name
+          fields {
             name
-            fields {
+            type {
               name
+              kind
+            }
+            args {
+              name
+              defaultValue
               type {
-                name
                 kind
-              }
-              args {
                 name
-                defaultValue
-                type {
+                ofType {
                   kind
                   name
                   ofType {
                     kind
                     name
+                    ofType {
+                      kind
+                      name
+                      ofType {
+                        kind
+                        name
+                          ofType {
+                          kind
+                          name
+                          ofType {
+                            kind
+                            name
+                            description
+                          }
+                        }
+                      }
+                    } 
                   }
                 }
               }
             }
           }
-          queryType {
-            name
-            fields {
-              name
-              type {
-                name
-                kind
-              }
-              args {
-                name
-                defaultValue
-                type {
-                  kind
-                  name
-                  ofType {
-                    kind
-                    name
-                  }
-                }
-              }
-            }
+        }
+      `;
+      sendQuery(introspectiveQuery)
+        .then((res) => {
+          const fields = [];
+          for (let i = 0; i < res.data.__schema.mutationType.fields.length; i += 1) {
+            res.data.__schema.mutationType.fields[i].query = 'mutation';
+            fields.push(res.data.__schema.mutationType.fields[i]);
           }
-        }
-      }
-    `;
-
-    sendQuery(introspectiveQuery)
-      .then((res) => {
-        console.log(res);
-        const fields = [];
-        for (let i = 0; i < res.data.__schema.mutationType.fields.length; i += 1) {
-          // console.log(res.data.__schema.mutationType.fields[i]);
-          res.data.__schema.mutationType.fields[i].query = 'mutation';
-          fields.push(res.data.__schema.mutationType.fields[i]);
-        }
-        for (let i = 0; i < res.data.__schema.queryType.fields.length; i += 1) {
-          // console.log(res.data.__schema.queryType.fields[i]);
-          res.data.__schema.queryType.fields[i].query = 'query';
-          fields.push(res.data.__schema.queryType.fields[i]);
-        }
-        // res.data.__schema.mutationType.fields.concat(res.data.__schema.queryType.fields);
-        //console.log('fields:', fields);
-        //this.types = {};
-        // loop through fields
-        for (let i = 0; i < fields.length; i += 1) {
-        //  typeFieldConstructor(fields[i]);
-          methodConstructor(fields[i]);
-        }
-      });
-
-  }
-
-    function typeFieldConstructor(field) {
-        if (!this.types[field.type.name]) {
-          if (field.type.name) {
-            this.types[field.type.name] = [];
-          } else {
-            this.types[field.type.kind] = [];
+          for (let i = 0; i < res.data.__schema.queryType.fields.length; i += 1) {
+            res.data.__schema.queryType.fields[i].query = 'query';
+            fields.push(res.data.__schema.queryType.fields[i]);
           }
-        }
-        if (field.type.name) {
-          // console.log('valid type');
-          this.types[field.type.name].push(field.name);
-        } else {
-          this.types[field.type.kind].push(field.name);
-        }
-      }
-
-      function methodConstructor(field) {
-        // ex: QLegance.field_name({}, [returning values])
-
-        // construct tempFunc based on information in field
-        const tempFunc = (obj, arr) => {
-          let returnValues = arr.join('\n');
-
-          // field that does take arguments
-          if (field.args.length) {
-            let args = '';
-            for (let i = 0 ; i < field.args.length; i += 1) {
-              let end = ''
-              if (i < field.args.length - 1) end += ', ';
-
-              if (field.args[i].type.kind === 'NON_NULL') {
-                if (field.args[i].name in obj) {
-                  const item = typeConverter(field.args[i].type.ofType.name, obj[field.args[i].name]);
-                  args += `${field.args[i].name} : ${item}${end}`
-                }
-              } else {
-                if (field.args[i].name in obj) {
-                  const item = typeConverter(field.args[i].type.name, obj[field.args[i].name]);
-                  args += `${field.args[i].name} : ${item}${end}`
-                }
-              }
-            }
-            return sendQuery(`
-              ${field.query} {
-                ${field.name}(${args}) {
-                  ${returnValues}
-                }
-              }
-            `);
-
-          // field that does not take arguments
-          } else {
-            return sendQuery(`
-              ${field.query} {
-                ${field.name} {
-                  ${returnValues}
-                }
-              }
-            `);
+          for (let i = 0; i < fields.length; i += 1) {
+            methodConstructor(fields[i]);
           }
-        }
-
-        // append tempFunc as method to QLegance object with the associted field name
-        single[field.name] = tempFunc;
+        });
     }
 
-      function typeConverter(type, item) {
-        if (type === 'String') {
-          return `"${item}"`;
+    function methodConstructor(field) {
+      // append the field as a method to QL object
+      single[field.name] = function(obj, arr) {
+        // save the associated arguments to the scope of the field/method
+        const requiredArgs = field.args;
+        // construct arguments based on client input
+        let args = argsConstructor(obj, requiredArgs);
+        // construct return values base on client input
+        let returnValues = returnValsConstructor(arr);
+        return sendQuery(`
+          ${field.query} {
+            ${field.name}${args} {
+              ${returnValues}
+            }
+          }
+        `);
+      }
+    }
+
+
+    function argsConstructor(obj, array) {
+      if (!array.length) {
+        return '';
+      }
+      let output = '';
+      for (let i = 0; i < array.length; i += 1) {
+        let end = ''; 
+        if (i < array.length - 1) end += ', ';
+        let current = array[i].type;
+        while (current.ofType) {
+          current = current.ofType;
         }
-        if (type === 'Int' || type === 'Float') {
-          return Number(item);
+        if (array[i].name in obj) {
+          const item = typeConverter(current.name, obj[array[i].name]);
+          output += `${array[i].name} : ${item}${end}`;
         }
       }
+      return `(${output})`;
+    }
+
+    function returnValsConstructor(array) {
+      let output = '';
+      for (let i = 0; i < array.length; i += 1) {
+        output += ' ';
+        if (typeof array[i] === 'string') {
+          output += array[i];
+        } else {
+          const key = Object.keys(array[i])[0];
+          output += `${key} {${returnValsConstructor(array[i][key])} }`;
+        }
+      }
+      return output;
+    }
+
+    function typeConverter(type, item) {
+      if (type === 'String') {
+        return `"${item}"`;
+      }
+      if (type === 'Int' || type === 'Float') {
+        return Number(item);
+      }
+    }
 
   })();
 
