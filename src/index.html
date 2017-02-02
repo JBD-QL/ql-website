@@ -8,7 +8,7 @@
     <link href="https://fonts.googleapis.com/css?family=Quicksand" rel="stylesheet">
     <link href='style.css' rel='stylesheet' type='text/css'>
   </head>
-  <body ql-server='/graphql'>
+  <body>
     <header>
       <nav>
         <ul id="navi_bar">
@@ -25,7 +25,7 @@
     <main>
       <h2> Projects built with Qlegance</h2>
       <div id="search_field">
-        Find project by: 
+        Find project by:
         <select id="search_option">
           <option value="name">Name</option>
           <option value="company">Company</option>
@@ -37,11 +37,10 @@
       <section ql-list='project | getProjects()' id="projects">
         <div class="project_box">
           <h3 class="name" ql-field="name"></h3> |
-          <h3 class="company">Company</h3>
-          <!-- <span ql-type="company">
-            <h4 class="company" ql-field="name"><h4>
-          </span> -->
-          <hr/>
+          <span ql-type="company">
+            <h3 class="company" ql-field="name"></h3>
+          </span>
+          <hr>
           <p class="description" ql-field="description"></p>
         </div>
       </section>

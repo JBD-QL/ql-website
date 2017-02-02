@@ -25,12 +25,17 @@ const QL = (()=>{
       return sendQuery("mutation" + string);
     };
 
-    single.initializer = () => {
-      if(!Client.server){
-        let server = document.querySelector('[ql-server]');
-        if(!server) throw new Error('GraphQL server has not been set.');
-        single.setServer(server.getAttribute('ql-server'));
+    single.initializer = (string) => {
+      let server;
+      if (typeof string === 'undefined') {
+        string = document.querySelector('[ql-server]');
+        if(!string) throw new Error('GraphQL server has not been set.');
+        server = string.getAttribute('ql-server');
+      } else {
+        server = string;
+        single.setServer(server);
       }
+      single.setServer(server);
       introspect();
       buildComponents();
     };
@@ -90,36 +95,55 @@ const QL = (()=>{
       return wrapper.length > 1 ? wrapper : wrapper[0];
     }
 
-    function buildComponents(){
-      const elements = document.querySelectorAll('[ql-type], [ql-list]');
-      let len = elements.length;
+    function buildComponents(elements, nested){
+      elements = elements || document.querySelectorAll('[ql-type], [ql-list]');
+      if(elements.length === 0) return;
 
-      for(let i = 0; i < len; i++){
-        let fields, typeName, method, component;
+      elements = Array.prototype.slice.call(elements, 0); //convert NodeList to array
 
+      for(let i = 0; i < elements.length; i++){
+        let field, fields, typeName, method, component, nestedTypes, nestedFields;
         component = {element: elements[i]};
 
-        fields = component.element.querySelectorAll('[ql-field]');
+        nestedTypes = component.element.querySelectorAll('[ql-type], [ql-list]');
 
-        [typeName, method] = getAttr(component.element).split('|');
-        if(!typeName || !method) throw new Error('Field ql-type or ql-list is not defined correctly.');
-
-        component.partial = component.element.cloneNode(true);
-        component.type_name = typeName.trim(); // ie. a schema defined for User
-        component.initial_query = method.trim(); // ie. getUser(username: "Judy")
         component.fields = [];
+        fields = component.element.querySelectorAll('[ql-field]');
+        component.partial = component.element.cloneNode(true);
+
+        if(nestedTypes.length > 0){
+          nestedTypes = Array.prototype.slice.call(nestedTypes, 0);
+
+          elements = elements.filter((element) => {
+            return nestedTypes.reduce((unique, el) => {
+              return unique && el !== element;
+            }, true);
+          });
+          component.fields.push( buildComponents(nestedTypes, true) ); //passing true for nested value
+        }
+
+        if(!nested){
+          [typeName, method] = getAttr(component.element).split('|');
+          if(!typeName || !method) throw new Error('Field ql-type or ql-list is not defined correctly.');
+          component.type_name = typeName.trim(); // ie. a schema defined for User
+          component.initial_query = method.trim(); // ie. getUser(username: "Judy")
+        }else{
+          component.type_name = getAttr(component.element);
+        }
 
         for(let n = 0; n < fields.length; n++){
           component.fields.push({name: getAttr(fields[n]), element: fields[n]});
         }
 
-        if(component.fields.length > 0){
+        if(component.fields.length > 0 && !nested){
           sendQuery(buildQuery(component)).then((result) =>{
             populate(component, result.data);
           });
         }
 
         Client.components.push(component);
+
+        if(nested) return component;
       }
     }
 
@@ -127,15 +151,24 @@ const QL = (()=>{
       return element.getAttribute('ql-type') || element.getAttribute('ql-list') || element.getAttribute('ql-field');
     }
 
+    function parseQueryFields(fields){
+      return fields.map((field) => {
+        if(field.type_name) return `${field.type_name} { ${parseQueryFields(field.fields)} }`;
+        return field.name;
+      }).join('\n');
+    }
+
     function buildQuery(component){
-      let str = component.initial_query;
-      if(str[str.length - 1] === ')' && str[str.length - 2] === '('){
-        str = getMethodName(str);
+      let query = component.initial_query;
+      let fields = parseQueryFields(component.fields);
+
+      if(query[query.length - 1] === ')' && query[query.length - 2] === '('){
+        query = getMethodName(query);
       }
 
       return `{
-        ${str}{
-          ${component.fields.map(field => {return field.name; }).join('\n')}
+        ${query}{
+          ${fields}
         }
       }`;
     }
@@ -152,7 +185,7 @@ const QL = (()=>{
 
         xhr.open("POST", Client.server, true);
         xhr.setRequestHeader("Content-Type", "application/json");
-        xhr.send(JSON.stringify({query}));
+      	xhr.send(JSON.stringify({query}));
 
         xhr.onreadystatechange = () => {
           if(xhr.readyState === 4){
@@ -171,7 +204,7 @@ const QL = (()=>{
         html = '';
 
       //FIXME Will need to iterate over keys when multiple queries are allowed
-      let queryKey = Object.keys(data)[0];
+      let queryKey = Object.keys(data)[0]
       data = data[queryKey];
 
       data = Array.isArray(data) ? data : [data]; //Ensuring a length is available
@@ -180,21 +213,28 @@ const QL = (()=>{
       for(let i = 0; i < len; i++){
         template = component.partial.cloneNode(true);
         keys = Object.keys(data[i]);
-
         keys.forEach((key) => {
           element = template.querySelector(`[ql-field=${key}]`);
+          if(!element){
+            element = template.querySelector(`[ql-type=${key}]`) || template.querySelector(`[ql-list=${key}]`);
+            let comp = Client.components.find((component) => { return getAttr(component.element) === getAttr(element); });
+            let obj = {};
+            obj[`${queryKey}`] = data[i][getAttr(element)];
 
-          if(element.nodeName.toLowerCase() === 'input'){
-              element.setAttribute('value', data[i][key]);
-            }else{
-              element.innerHTML = data[i][key];
-            }
+            //populate an inner component then append it
+            element.parentNode.replaceChild( populate(comp, obj), element);
+          } else if (element.nodeName.toLowerCase() === 'input'){
+            element.setAttribute('value', data[i][key]);
+          } else {
+            element.innerHTML = data[i][key];
+          }
         });
 
         html += template.innerHTML;
       }
 
       component.element.innerHTML = html;
+      return template;
     }
 
     function introspect() {
@@ -258,16 +298,13 @@ const QL = (()=>{
         .then((res) => {
           const fields = [];
           for (let i = 0; i < res.data.__schema.mutationType.fields.length; i += 1) {
-            // console.log(res.data.__schema.mutationType.fields[i]);
             res.data.__schema.mutationType.fields[i].query = 'mutation';
             fields.push(res.data.__schema.mutationType.fields[i]);
           }
           for (let i = 0; i < res.data.__schema.queryType.fields.length; i += 1) {
-            // console.log(res.data.__schema.queryType.fields[i]);
             res.data.__schema.queryType.fields[i].query = 'query';
             fields.push(res.data.__schema.queryType.fields[i]);
           }
-          console.log('fields:', fields);
           for (let i = 0; i < fields.length; i += 1) {
             methodConstructor(fields[i]);
           }
