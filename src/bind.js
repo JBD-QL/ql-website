@@ -30,7 +30,7 @@ const QL = (()=>{
     Client.cacheOn = true;
   };
 
-  single.initializer = (serv, cache) => {
+  single.initializer = (serv) => {
     let server;
     if (typeof serv === 'undefined') {
       serv = document.querySelector('[ql-server]');
@@ -39,9 +39,6 @@ const QL = (()=>{
     } else {
       server = serv;
     }
-    if (cache) {
-      single.cacheOn();
-    };
     single.setServer(server);
     introspect();
     buildComponents();
@@ -91,8 +88,9 @@ const QL = (()=>{
           });
       });
 
-      wrapper[i].query = (method, args, returnValues) => {
-        return single[method](args, returnValues).then((result) => {
+      wrapper[i].query = (method, args, returnValues, options) => {
+        if (typeof options === 'undefined') options = {};
+        return single[method](args, returnValues, options).then((result) => {
           let component = Client.components.find( component => { return selection[i] === component.element; });
           populate(component, result.data);
           return result.data;
@@ -319,25 +317,24 @@ const QL = (()=>{
   }
 
   function methodConstructor(field) {
-    if (Client.cacheOn) {
-      single[field.name] = function(obj, arr) {
-        // save the associated arguments to the scope of the field/method
-        const requiredArgs = field.args;
-        // construct arguments based on client input | argsConstructor normalizes args
-        let args = argsConstructor(obj, requiredArgs);
-        // construct return values base on client input | returnValsConstructor normalizes return vals
-        let returnValues = returnValsConstructor(arr);
-        const queryStr = `
-          ${field.query} {
-            ${field.name}${args} {
-              ${returnValues}
-            }
+    single[field.name] = function(obj, arr, options) {
+      if (typeof options === 'undefined') options = {};
+      // save the associated arguments to the scope of the field/method
+      const requiredArgs = field.args;
+      // construct arguments based on client input | argsConstructor normalizes args
+      let args = argsConstructor(obj, requiredArgs);
+      // construct return values base on client input | returnValsConstructor normalizes return vals
+      let returnValues = returnValsConstructor(arr);
+      const queryStr = `
+        ${field.query} {
+          ${field.name}${args} {
+            ${returnValues}
           }
-        `;
+        }
+      `;
+      if (options.cache) {
         const hashed = queryStr.replace(/[^\w]/gi, '');
-        console.log('cache:', Client.cache);
         if (Client.cache[hashed]) {
-          // return Client.cache[hashed];
           console.log('got from cache');
           return new Promise((resolve, reject) => {
             resolve(Client.cache[hashed]);
@@ -351,22 +348,7 @@ const QL = (()=>{
               resolve(res);
             });
           });
-      }
-    } else {
-      single[field.name] = function(obj, arr) {
-        // save the associated arguments to the scope of the field/method
-        const requiredArgs = field.args;
-        // construct arguments based on client input | argsConstructor normalizes args
-        let args = argsConstructor(obj, requiredArgs);
-        // construct return values base on client input | returnValsConstructor normalizes return vals
-        let returnValues = returnValsConstructor(arr);
-        const queryStr = `
-          ${field.query} {
-            ${field.name}${args} {
-              ${returnValues}
-            }
-          }
-        `;
+      } else {
         return sendQuery(queryStr);
       }
     }
