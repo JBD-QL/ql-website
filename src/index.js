@@ -25,6 +25,10 @@ function query() {
       .then(res => {
         console.log('success');
       }); 
+      QL('#projects').query(method, args, returnVals)
+      .then(res => {
+        console.log('success');
+      }); 
     // QL.getProjectByName(args, returnVals)
     //   .then(res => {
     //     console.log('result:', res.data.getProjectByName);
@@ -34,11 +38,11 @@ function query() {
     let method = 'getProjectsByCompany';
     let args = {company : searchText};
     let returnVals = ['name', {company : ['name'] }, 'description'];
-    QL('#projects').query(method, args, returnVals)
+    QL('#projects').query(method, args, returnVals, {cache : true})
       .then(res => {
         console.log(res);
-      }); 
-    // QL.getProjectsByCompany(args, returnVals)
+      });
+    // QL.getProjectsByCompany(args, returnVals, {cache : true})
     //   .then(res => {
     //     console.log('result:', res.data.getProjectsByCompany);
     //   });
