@@ -33,7 +33,6 @@ const QL = (()=>{
         server = string.getAttribute('ql-server');
       } else {
         server = string;
-        single.setServer(server);
       }
       single.setServer(server);
       introspect();
@@ -161,6 +160,9 @@ const QL = (()=>{
     function buildQuery(component){
       let query = component.initial_query;
       let fields = parseQueryFields(component.fields);
+      console.log('query:', query);
+      console.log('fields type:', typeof fields);
+      console.log('fields:', fields);
 
       if(query[query.length - 1] === ')' && query[query.length - 2] === '('){
         query = getMethodName(query);
