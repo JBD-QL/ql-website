@@ -5,7 +5,7 @@ document.onreadystatechange = (event) =>{
 }
 
 function app() {
-  QL.initializer('/graphql');
+  QL.initializer('/graphql', true);
   const searchButton = document.getElementById('search_button');
   const allButton = document.getElementById('all_button');
   allButton.addEventListener('click', queryAll);
