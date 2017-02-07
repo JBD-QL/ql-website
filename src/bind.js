@@ -7,6 +7,7 @@ const QL = (()=>{
   const Client = {
     components: [],
     server: null,
+    types: {},
     cache: {}
   };
 
@@ -24,10 +25,6 @@ const QL = (()=>{
 
   single.mutate = (string) => {
     return sendQuery("mutation" + string);
-  };
-
-  single.cacheOn = () => {
-    Client.cacheOn = true;
   };
 
   single.initializer = (serv) => {
@@ -80,13 +77,13 @@ const QL = (()=>{
       wrapper[i] = {element: selection[i]};
 
       //FIXME not  fully implemented
-      wrapper[i].mutate = ((method, args, returnValues) => {
+      wrapper[i].mutate = (method, args, returnValues) => {
         return single[method](args, returnValues).then((result) => {
             let component = Client.components.find( component => { return selection[i] === component.element; });
             populate(component, result.data);
             resolve(result.data);
           });
-      });
+      };
 
       wrapper[i].query = (method, args, returnValues, options) => {
         if (typeof options === 'undefined') options = {};
@@ -262,6 +259,27 @@ const QL = (()=>{
           type {
             name
             kind
+            ofType {
+              name
+              kind
+              ofType {
+                name
+                kind
+                ofType {
+                  name
+                  kind
+                  ofType {
+                    name
+                    kind
+                    ofType {
+                      name
+                      kind
+                      description
+                    }
+                  }
+                }
+              }
+            }
           }
           args {
             name
@@ -311,9 +329,22 @@ const QL = (()=>{
           fields.push(res.data.__schema.queryType.fields[i]);
         }
         for (let i = 0; i < fields.length; i += 1) {
+          typeConstructor(fields[i]);
           methodConstructor(fields[i]);
         }
+        console.log('fields:', fields);
+        console.log('types', Client.types);
       });
+  }
+
+  function typeConstructor(field) {
+    const fieldName = field.name;
+    let current = field.type;
+    while (current.ofType) {
+      current = current.ofType;
+    }
+    const type = current.name;
+    Client.types[fieldName] = type;
   }
 
   function methodConstructor(field) {
@@ -322,9 +353,9 @@ const QL = (()=>{
       // save the associated arguments to the scope of the field/method
       const requiredArgs = field.args;
       // construct arguments based on client input | argsConstructor normalizes args
-      let args = argsConstructor(obj, requiredArgs);
+      const args = argsConstructor(obj, requiredArgs);
       // construct return values base on client input | returnValsConstructor normalizes return vals
-      let returnValues = returnValsConstructor(arr);
+      const returnValues = returnValsConstructor(arr);
       const queryStr = `
         ${field.query} {
           ${field.name}${args} {

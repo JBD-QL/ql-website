@@ -10,7 +10,6 @@ function app() {
   const allButton = document.getElementById('all_button');
   allButton.addEventListener('click', queryAll);
   searchButton.addEventListener('click', query);
-  // console.log('QL:', QL);
 }
 
 function query() {
@@ -23,11 +22,7 @@ function query() {
     let returnVals = ['name', {company : ['name'] }, 'description'];
     QL('#projects').query(method, args, returnVals)
       .then(res => {
-        console.log('success');
-      }); 
-      QL('#projects').query(method, args, returnVals)
-      .then(res => {
-        console.log('success');
+        console.log(res);
       }); 
     // QL.getProjectByName(args, returnVals)
     //   .then(res => {
@@ -38,21 +33,25 @@ function query() {
     let method = 'getProjectsByCompany';
     let args = {company : searchText};
     let returnVals = ['name', {company : ['name'] }, 'description'];
+    console.log(QL.getProjectsByCompany);
     QL('#projects').query(method, args, returnVals, {cache : true})
       .then(res => {
-        console.log(res);
+        console.log('DOM:', res);
       });
     // QL.getProjectsByCompany(args, returnVals, {cache : true})
     //   .then(res => {
-    //     console.log('result:', res.data.getProjectsByCompany);
+    //     console.log('result:', res.data);
     //   });
   }
 };
 
 function queryAll() {
-  // QL.getProjects({}, ['name', {company : ['name'] }, 'description'])
-  //   .then(res => {
-  //     console.log('result:', res.data.getProjects);
-  //   });
-  QL('#projects').query('getProjects', {}, ['name', {company : ['name'] }, 'description']);
+  QL.getProjects({}, ['name', {company : ['name'] }, 'description'])
+    .then(res => {
+      console.log('result:', res.getProjects);
+    });
+  QL('#projects').query('getProjects', {}, ['name', {company : ['name'] }, 'description'])
+    .then(res => {
+      console.log(res);
+    });
 };
