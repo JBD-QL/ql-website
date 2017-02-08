@@ -20,38 +20,28 @@ function query() {
     let method = 'getProjectByName';
     let args = {name : searchText};
     let returnVals = ['name', {company : ['name'] }, 'description'];
-    QL('#projects').query(method, args, returnVals)
-      .then(res => {
-        console.log(res);
-      }); 
+    QL('#projects').query(method, args, returnVals, {cache : true});
     // QL.getProjectByName(args, returnVals)
     //   .then(res => {
-    //     console.log('result:', res.data.getProjectByName);
+    //     console.log('result:', res);
     //   });
   }
   if (searchField === 'company') {
     let method = 'getProjectsByCompany';
     let args = {company : searchText};
     let returnVals = ['name', {company : ['name'] }, 'description'];
-    console.log(QL.getProjectsByCompany);
-    QL('#projects').query(method, args, returnVals, {cache : true})
-      .then(res => {
-        console.log('DOM:', res);
-      });
+    QL('#projects').query(method, args, returnVals);
     // QL.getProjectsByCompany(args, returnVals, {cache : true})
     //   .then(res => {
-    //     console.log('result:', res.data);
+    //     console.log('result:', res);
     //   });
   }
 };
 
 function queryAll() {
-  QL.getProjects({}, ['name', {company : ['name'] }, 'description'])
-    .then(res => {
-      console.log('result:', res.getProjects);
-    });
-  QL('#projects').query('getProjects', {}, ['name', {company : ['name'] }, 'description'])
-    .then(res => {
-      console.log(res);
-    });
+  QL('#projects').query('getProjects', {}, ['name', {company : ['name'] }, 'description']);
+  // QL.getProjects({}, ['name', {company : ['name'] }, 'description'])
+  //   .then(res => {
+  //     console.log('result:', res);
+  //   });
 };

@@ -249,6 +249,10 @@ const QL = (()=>{
           queryType {
             ...typeInfo
           }
+          types {
+            kind
+            ...typeInfo
+          }
         }
       }
 
@@ -319,42 +323,57 @@ const QL = (()=>{
     `;
     sendQuery(introspectiveQuery)
       .then((res) => {
+        const data = res.data.__schema;
         const fields = [];
-        for (let i = 0; i < res.data.__schema.mutationType.fields.length; i += 1) {
-          res.data.__schema.mutationType.fields[i].query = 'mutation';
-          fields.push(res.data.__schema.mutationType.fields[i]);
+        for (let i = 0; i < data.mutationType.fields.length; i += 1) {
+          data.mutationType.fields[i].query = 'mutation';
+          fields.push(data.mutationType.fields[i]);
         }
-        for (let i = 0; i < res.data.__schema.queryType.fields.length; i += 1) {
-          res.data.__schema.queryType.fields[i].query = 'query';
-          fields.push(res.data.__schema.queryType.fields[i]);
+        for (let i = 0; i < data.queryType.fields.length; i += 1) {
+          data.queryType.fields[i].query = 'query';
+          fields.push(data.queryType.fields[i]);
         }
         for (let i = 0; i < fields.length; i += 1) {
           typeConstructor(fields[i]);
           methodConstructor(fields[i]);
         }
-        console.log('fields:', fields);
-        console.log('types', Client.types);
+        for (let i = 0; i < data.types.length; i += 1) {
+          cacheTypesConstructor(data.types[i]);
+        }
       });
+  }
+
+  function cacheTypesConstructor(type) {
+    if (!Client.types[type.name] && type.kind === 'OBJECT' && type.name[0] !== '_') {
+      if (!Client.types[type.fields[0].name]) {
+        Client.cache[type.name] = [];
+      }
+    }
   }
 
   function typeConstructor(field) {
     const fieldName = field.name;
     let current = field.type;
+    let temp;
     while (current.ofType) {
+      temp = current;
       current = current.ofType;
     }
     const type = current.name;
-    Client.types[fieldName] = type;
+    let kind;
+    if (temp) kind = temp.kind;
+    else kind = current.kind;
+    Client.types[fieldName] = {
+      type : type,
+      kind : kind
+    };
   }
 
   function methodConstructor(field) {
     single[field.name] = function(obj, arr, options) {
       if (typeof options === 'undefined') options = {};
-      // save the associated arguments to the scope of the field/method
       const requiredArgs = field.args;
-      // construct arguments based on client input | argsConstructor normalizes args
       const args = argsConstructor(obj, requiredArgs);
-      // construct return values base on client input | returnValsConstructor normalizes return vals
       const returnValues = returnValsConstructor(arr);
       const queryStr = `
         ${field.query} {
@@ -364,25 +383,68 @@ const QL = (()=>{
         }
       `;
       if (options.cache) {
-        const hashed = queryStr.replace(/[^\w]/gi, '');
-        if (Client.cache[hashed]) {
-          console.log('got from cache');
-          return new Promise((resolve, reject) => {
-            resolve(Client.cache[hashed]);
-          });
-        }
-        console.log('not in  cache');
-        return sendQuery(queryStr)
-          .then((res) => {
-            Client.cache[hashed] = res;
-            return new Promise((resolve, reject) => {
-              resolve(res);
-            });
-          });
+        return queryCache(field.query, field.name, obj, arr, args, returnValues);
       } else {
         return sendQuery(queryStr);
       }
     }
+  }
+
+  function queryCache(query, fieldName, args, returnValues, argStr, returnValStr) {
+    const queryStr = `
+      ${query} {
+        ${fieldName}${argStr} {
+          ${returnValStr}
+        }
+      }
+    `;
+    const cacheType = Client.types[fieldName].type;
+    const cacheKind = Client.types[fieldName].kind;
+    if (cacheKind === 'OBJECT') {
+      for (let i = 0; i < Client.cache[cacheType].length; i += 1) {
+        let argMatch = true;
+        let rvMatch = true;
+        for (let key in args) {
+          if (!Client.cache[cacheType][i][key] || Client.cache[cacheType][i][key] !== args[key]) {
+            argMatch = false;
+          }
+        }
+        for (let j = 0; j < returnValues.length; j += 1) {
+          let returnVal = returnValues[j];
+          if (typeof returnValues[j] === 'object') {
+            returnVal = Object.keys(returnValues[j])[0];
+          }
+          if (!Client.cache[cacheType][i][returnVal]) {
+            rvMatch = false;
+          }
+        }
+        if (argMatch && rvMatch) {
+          return new Promise((resolve, reject) => {
+            resolve({data : {fieldName : Client.cache[cacheType][i]}});
+          });
+        }
+      }
+      return cacher(queryStr, cacheType, fieldName);
+    } else {
+      return sendQuery(queryStr)
+        .then((res) => {
+          return new Promise((resolve, reject) => {
+            resolve(res);
+          });
+        });
+    }
+  }
+
+  function cacher(string, cacheType, fieldName, index) {
+    return sendQuery(string)
+      .then((res) => {
+        const data = res.data[fieldName];
+        if (index) Client.cache[cacheType].splice(index, 1);
+        Client.cache[cacheType].push(data);
+        return new Promise((resolve, reject) => {
+          resolve(res);
+        });
+      });
   }
 
   function argsConstructor(obj, array) {
