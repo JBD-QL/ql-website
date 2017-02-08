@@ -492,24 +492,3 @@ const QL = (()=>{
   }
 
 })();
-
-    //    Features that have not been yet implemented
-    //    *************************************************
-    //
-    //   cacheQuery(query, data){
-    //     let hash = this.hashFunction(query);
-    //     localStorage[hash] = JSON.stringify({query, data});
-    //   }
-    //
-    //  preQueryResolve(query, data){ //not implemented as of yet
-    //     let hash = this.hashFunction(query);
-    //    return JSON.parse(localStorage[hash]);
-    //  }
-    //
-    //   hashFunction(string){
-    //     let hash = 5, len = string.length;
-    //     for(let i = 0; i < len; i++){
-    //       hash = hash*16 + string[i].charCodeAt();
-    //     }
-    //     return JSON.stringify('QLegance:' + hash);
-    //   }
