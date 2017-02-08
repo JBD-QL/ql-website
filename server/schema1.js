@@ -50,7 +50,7 @@ const Query = new GraphQLObjectType({
       }
     },
     getCompanyByName: {
-      type: new GraphQLList(Company),
+      type: Company,
       args: {
         name: {type: new GraphQLNonNull(GraphQLString)},
       },
