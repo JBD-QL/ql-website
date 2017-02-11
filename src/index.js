@@ -19,17 +19,17 @@ function query() {
   if (searchField === 'name') {
     let method = 'getProjectByName';
     let args = {name : searchText};
-    let returnVals = ['name', {company : ['name'] }, 'description'];
+    let returnVals = ['name', 'team', 'description'];
     QL('#projects').query(method, args, returnVals, {cache : true});
     // QL.getProjectByName(args, returnVals)
     //   .then(res => {
     //     console.log('result:', res);
     //   });
   }
-  if (searchField === 'company') {
-    let method = 'getProjectsByCompany';
-    let args = {company : searchText};
-    let returnVals = ['name', {company : ['name'] }, 'description'];
+  if (searchField === 'team') {
+    let method = 'getProjectsByTeam';
+    let args = {team : searchText};
+    let returnVals = ['name', 'team', 'description'];
     QL('#projects').query(method, args, returnVals);
     // QL.getProjectsByCompany(args, returnVals, {cache : true})
     //   .then(res => {
@@ -39,7 +39,7 @@ function query() {
 };
 
 function queryAll() {
-  QL('#projects').query('getProjects', {}, ['name', {company : ['name'] }, 'description']);
+  QL('#projects').query('getProjects', {}, ['name', 'team', 'description']);
   // QL.getProjects({}, ['name', {company : ['name'] }, 'description'])
   //   .then(res => {
   //     console.log('result:', res);

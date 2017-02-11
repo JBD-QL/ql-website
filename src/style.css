@@ -34,6 +34,9 @@ nav {
   text-decoration: none;
   margin: 0px 20px;
 }
+.navi_links:hover {
+  color: #E401A1;
+}
 #intro {
   position: relative;
   text-align: center;
@@ -132,7 +135,7 @@ main{
   /*color: #646464;*/
   color: #E401A1;
 }
-.company{
+.team{
   margin-top: 20px;
   margin-bottom: 10px;
   display: inline-block;
@@ -146,7 +149,7 @@ main{
 }
 footer{
   position: relative;
-  bottom: 0px;
+  /*bottom: 0px;*/
   height: 40px;
   width: 100%;
   text-align: center;
