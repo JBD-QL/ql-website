@@ -11,31 +11,16 @@ import {
 } from 'graphql';
 
 const mongoose = require('mongoose');
-const uri = process.env.MONGO_URI || 'mongodb://localhost/QLprojects1';
+const uri = process.env.MONGO_URI || 'mongodb://localhost/QLdemo';
 const db = mongoose.connect(uri);
 
 const projectModel = require('./model1');
-const companyModel = require('./model2');
-
-const Company = new GraphQLObjectType({
-  name: 'company',
-  fields: () => ({
-    name: {type: new GraphQLNonNull(GraphQLString)},
-    size: {type: GraphQLInt},
-    stack: {type: new GraphQLList(GraphQLString)}
-  })
-});
 
 const Project = new GraphQLObjectType({
   name: 'project',
   fields: () => ({
     name: {type: new GraphQLNonNull(GraphQLString)},
-    company: {
-      type: Company,
-      resolve: ({company}) => {
-        return companyModel.findOne({name : company});
-      }
-    },
+    team: {type: new GraphQLNonNull(GraphQLString)},
     description: {type: new GraphQLNonNull(GraphQLString)}
   })
 });
@@ -43,22 +28,6 @@ const Project = new GraphQLObjectType({
 const Query = new GraphQLObjectType({
   name: 'ProjectSchema',
   fields: () => ({
-    getCompanies: {
-      type: new GraphQLList(Company),
-      resolve: (source, args) => {
-        return companyModel.find({});
-      }
-    },
-    getCompanyByName: {
-      type: Company,
-      args: {
-        name: {type: new GraphQLNonNull(GraphQLString)},
-      },
-      resolve: (source, args) => {
-        const search = Object.assign({}, args);
-        return companyModel.findOne(search);
-      }
-    },
     getProjects: {
       type: new GraphQLList(Project),
       resolve: (source, args) => {
@@ -75,25 +44,26 @@ const Query = new GraphQLObjectType({
         return projectModel.findOne(search);
       }
     },
-    getProjectsByCompany : {
+    getProjectsByTeam : {
       type: new GraphQLList(Project),
       args: {
-        company: {type: new GraphQLNonNull(GraphQLString)},
+        team: {type: new GraphQLNonNull(GraphQLString)},
       },
       resolve: (source, args) => {
         const search = Object.assign({}, args);
         return projectModel.find(search);
       }
     },
-    recentProjects : {
+    getRecentProjects : {
       type: new GraphQLList(Project),
       args: {
         count: {type: new GraphQLNonNull(GraphQLInt)},
       },
       resolve: (source, args) => {
-        return projectModel.find({}).limit(args.count);
+        const count = args.count;
+        return projectModel.find({}).limit(count);
       }
-    }
+    },
   })
 });
 
@@ -104,7 +74,7 @@ const Mutation = new GraphQLObjectType({
       type: Project,
       args: {
         name: {type: new GraphQLNonNull(GraphQLString)},
-        company: {type: new GraphQLNonNull(GraphQLString)},
+        team: {type: new GraphQLNonNull(GraphQLString)},
         description: {type: new GraphQLNonNull(GraphQLString)},
       },
       resolve: (source, args) => {
@@ -112,16 +82,20 @@ const Mutation = new GraphQLObjectType({
         return projectModel.create(proj);
       }
     },
-    addCompany: {
-      type: Company,
+    deleteProject: {
+      type: Project,
       args: {
-        name: {type: new GraphQLNonNull(GraphQLString)},
-        size: {type: GraphQLInt},
-        stack: {type: new GraphQLList(GraphQLString)}
+        name: {type: new GraphQLNonNull(GraphQLString)}
       },
       resolve: (source, args) => {
         const proj = Object.assign({}, args);
-        return companyModel.create(proj);
+        return projectModel.findOneAndRemove(proj);
+      }
+    },
+    deleteAllProjects: {
+      type: new GraphQLList(Project),
+      resolve: (source, args) => {
+        return projectModel.remove({});
       }
     }
   }
@@ -133,3 +107,36 @@ const Schema = new GraphQLSchema({
 });
 
 module.exports = Schema;
+
+// mutation {
+//   p0: addProject(name: "QLegance", team: "JBD", description: "A lightweight Graphql client library for Javascript environments") {
+//     name
+//     team
+//     description
+//   }
+//   p1: addProject(name: "DejaVue", team: "MiCottOn", description: "Visualization and debugging tool built for Vue.js") {
+//     name
+//     team
+//     description
+//   }
+//   p2: addProject(name: "Veritas Offline GRE", team: "Team VW", description: "An Electron desktop application for GRE prep lessons") {
+//     name
+//     team
+//     description
+//   }
+//   p3: addProject(name: "Vuedeux", team: "Team Vuedeux", description: "A lightweight open-source utility layer for binding Vuex to Redux in a way that allows developers to re-use their pre-existing Redux stores") {
+//     name
+//     team
+//     description
+//   }
+//   p4: addProject(name: "Delorean", team: "Brasco", description: "Time travel debugging for MobX-React applications") {
+//     name
+//     team
+//     description
+//   }
+//   p5: addProject(name: "Salazar", team: "Team Salazar", description: "A library and development suite for UI focused BDD/TDD") {
+//     name
+//     team
+//     description
+//   }
+// }
